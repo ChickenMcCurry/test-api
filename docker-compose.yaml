@@ -1,0 +1,61 @@
+version: '3.5'
+
+services:
+  nginx:
+    build: docker/nginx
+    env_file:
+      - .env
+    ports:
+      - ${HTTP_NGINX_PORT}:8080
+    volumes:
+      - ./docker/nginx/host.conf:/etc/nginx/sites-enabled/default
+      - ./app/back:/var/www/test-api/:delegated
+    working_dir: /var/www/test-api/
+    depends_on:
+      - php-fpm
+
+  php-fpm:
+    build: docker/php-fpm
+    env_file:
+      - .env
+    ports:
+      - ${PHP_FPM_PORT}:9000
+    volumes:
+      - ./app/back:/var/www/test-api/:delegated
+      - ./docker/php-fpm/fpm-pool.conf:/etc/php/7.1/fpm/pool.d/www.conf:ro
+    working_dir: /var/www/test-api/
+    entrypoint: /docker-entrypoint.sh
+
+  front:
+    build: docker/front
+    env_file:
+      - .env
+    ports:
+      - ${FRONT_PORT}:8080
+      - ${FRONT_LISTEN_PORT}:4200
+    volumes:
+      - ./app/front:/var/www/front-app/:cached
+    entrypoint: /docker-entrypoint.sh
+    working_dir: /var/www/front-app/
+
+  postgre:
+    build: docker/postgre
+    ports:
+      - 5432:5432
+    environment:
+      - DB_USER=${PG_USER}
+      - DB_NAME=${PG_DATABASE}
+      - DB_PASS=${PG_PASSWORD}
+      - PG_PASSWORD=root
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    volumes:
+      - ./docker/pgadmin/servers.json:/pgadmin4/servers.json
+    ports:
+      - ${PG_ADMIN_PORT}:80
+    depends_on:
+      - postgre
