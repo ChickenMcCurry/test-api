@@ -12,7 +12,7 @@ COPY host.conf /etc/nginx/sites-enabled/default
 COPY nginx.conf /etc/nginx/nginx.conf
 RUN chown www-data:www-data /var/www -R
 RUN chown -R www-data:www-data /var/lib/nginx
-RUN mkdir -p /var/www/front-app/dist
+RUN mkdir -p /var/www/front-app/build
 
 EXPOSE 8080
 

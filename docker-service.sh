@@ -22,15 +22,11 @@ start() {
     docker-compose -f docker-compose.yaml ps
 }
 
-gitHooks() {
-    echo "add git hooks"
-    cp -R .git-hooks/hooks/ .git/hooks
-    chmod -R 744 .git/hooks
-    git config core.hooksPath .git/hooks
-}
-
 install() {
   installBack
+  populate
+  installFront
+  buildFront
 }
 
 installBack() {
@@ -48,7 +44,7 @@ installFront() {
 populate() {
     echo 'Populate'
     docker-compose -f docker-compose.yaml exec -T --user www-data php-fpm bash -c "bin/console do:sc:up -f &&
-                                                                                        bin/console ha:fi:lo -n"
+                                                                                        bin/console do:fi:lo -n"
 }
 
 stop() {
@@ -69,37 +65,6 @@ watchFront() {
     docker-compose -f docker-compose.yaml exec -T --user www-data node bash -c "npm run watch"
 }
 
-csFixer() {
-    paths=""
-    config=".php_cs.dist"
-
-    if [ "$#" -ge 1 ]; then
-        paths="$1"
-        docker run --rm --user www-data --env-file=.env -v ${PWD}/app/back:/var/www/test-api/ -w /var/www/test-api/ test-api_php-fpm bash -c "php -l $paths"
-
-        if [ "$#" -eq 2 ]; then
-            config="$2"
-        fi
-    fi
-    docker run --rm --user www-data --env-file=.env -v ${PWD}/app/back:/var/www/test-api/ -w /var/www/test-api/ test-api_php-fpm bash -c "vendor/bin/php-cs-fixer fix --config=$config $paths -vv"
-}
-
-qualityTestsBack() {
-    docker-compose -f docker-compose.yaml up -d php-fpm
-
-    echo -e "\n\n\nCs Fixer : App/"
-    docker-compose -f docker-compose.yaml exec -T --user www-data php-fpm vendor/bin/php-cs-fixer fix --config=.php_cs.dist --dry-run --diff -vv
-
-    # Lint PHP files
-    docker-compose -f docker-compose.yaml exec -T --user www-data php-fpm php -l src/
-    docker-compose -f docker-compose.yaml exec -T --user www-data php-fpm php -l features/
-
-    # Bundles security check
-    docker-compose -f docker-compose.yaml exec -T --user www-data php-fpm vendor/bin/security-checker security:check
-
-    docker-compose -f docker-compose.yaml down
-}
-
 # Usage info
 show_help() {
 cat << EOF
@@ -110,7 +75,6 @@ Options:
 Commands:
   initialize                  Start the project no matter what state it is in
   start                       Start docker containers
-  gitHooks                    Add hooks precommit
   install                     Run app installation scripts
   installBack                 Run back app installation scripts
   installFront                Run front app installation scripts
@@ -119,8 +83,6 @@ Commands:
   down                        Remove docker containers
   buildFront                  Run the build npm task
   watchFront                  Run the watch npm task
-  csFixer                     Execute php-cs-fixer and php lint
-  qualityTestsBack            Run back quality tests
 EOF
 }
 # Get cli options
@@ -168,9 +130,6 @@ case "$1" in
         stop
         start
         ;;
- gitHooks)
-        gitHooks
-        ;;
  install)
         install
         ;;
@@ -180,17 +139,11 @@ case "$1" in
  populate)
         populate
         ;;
- qualityTestsBack)
-        qualityTestsBack
-        ;;
  build)
         buildFront
         ;;
  watch)
         watchFront
-        ;;
- csFixer)
-        csFixer
         ;;
  *)
         show_help >&2

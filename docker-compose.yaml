@@ -34,7 +34,7 @@ services:
       - ${FRONT_PORT}:8080
       - ${FRONT_LISTEN_PORT}:4200
     volumes:
-      - ./app/front:/var/www/front-app/:cached
+      - ./app/front:/var/www/front-app/
     entrypoint: /docker-entrypoint.sh
     working_dir: /var/www/front-app/
 
