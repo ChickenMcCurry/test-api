@@ -8,7 +8,7 @@ Initialize the project with `./docker-service.sh initialize`.
 * Front on port [8082](http://localhost:8082)
 * Front watch server on port [4200](http://localhost:4200)
 * Backend on port [8888](http://localhost:8888)
-* Postgre Admin on port [8980](http://localhost:8980)
+* Postgre Admin on port [5432](http://localhost:5432)
 
 ## Commands
 ```bash

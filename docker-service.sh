@@ -37,8 +37,8 @@ installBack() {
 
 installFront() {
     echo 'Install Front'
-    docker-compose -f docker-compose.yaml run --rm -T --user=root --no-deps --entrypoint="/bin/bash -c"  node "chown 33:33 /var/www -R"
-    docker-compose -f docker-compose.yaml run -T --rm --user=www-data --no-deps --entrypoint="/bin/bash -c" node "npm i"
+    docker-compose -f docker-compose.yaml run --rm -T --user=root --no-deps --entrypoint="/bin/bash -c"  front "chown 33:33 /var/www -R"
+    docker-compose -f docker-compose.yaml run -T --rm --user=www-data --no-deps --entrypoint="/bin/bash -c" front "npm i"
 }
 
 populate() {
@@ -58,11 +58,11 @@ down() {
 }
 
 buildFront() {
-    docker-compose -f docker-compose.yaml exec -T --user www-data node bash -c "npm run build"
+    docker-compose -f docker-compose.yaml exec -T --user www-data front bash -c "npm run build"
 }
 
 watchFront() {
-    docker-compose -f docker-compose.yaml exec -T --user www-data node bash -c "npm run watch"
+    docker-compose -f docker-compose.yaml exec -T --user www-data front bash -c "npm run watch"
 }
 
 # Usage info
@@ -139,10 +139,10 @@ case "$1" in
  populate)
         populate
         ;;
- build)
+ buildFront)
         buildFront
         ;;
- watch)
+ watchFront)
         watchFront
         ;;
  *)
