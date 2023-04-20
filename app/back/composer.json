@@ -28,7 +28,9 @@
         "symfony/yaml": "5.1.*"
     },
     "require-dev": {
+        "behat/behat": "^3.13",
         "doctrine/doctrine-fixtures-bundle": "^3.3",
+        "friends-of-behat/symfony-extension": "^2.0",
         "symfony/debug-bundle": "^5.1",
         "symfony/maker-bundle": "^1.21",
         "symfony/monolog-bundle": "^3.0",
@@ -45,7 +47,8 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\": "src/"
+            "App\\": "src/",
+            "App\\Tests\\": "features/bootstrap/"
         }
     },
     "autoload-dev": {
@@ -63,10 +66,10 @@
         "symfony/polyfill-php56": "*"
     },
     "scripts": {
-        "auto-scripts": {
-            "cache:clear": "symfony-cmd",
-            "assets:install %PUBLIC_DIR%": "symfony-cmd"
-        },
+        "auto-scripts": [
+            "bin/console ca:cl",
+            "bin/console assets:install public/"
+        ],
         "post-install-cmd": [
             "@auto-scripts"
         ],

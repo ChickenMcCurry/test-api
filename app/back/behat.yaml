@@ -1,0 +1,12 @@
+default:
+  gherkin:
+    filters:
+      tags: ~@php8
+  extensions:
+    FriendsOfBehat\SymfonyExtension:
+      kernel:
+        environment: dev
+  suites:
+      default:
+          contexts:
+              - App\Tests\FeatureContext

@@ -7,6 +7,8 @@ OPTIND=1
 [ ! -f .env ] && cp .env.dist .env;
 source .env
 
+USER_ID=$(id -u)
+GROUP_ID=$(id -g)
 
 # Common operations
 initialize() {
@@ -18,6 +20,7 @@ initialize() {
 }
 
 start() {
+    docker-compose build --build-arg USER_ID=$USER_ID --build-arg GROUP_ID=$GROUP_ID
     docker-compose -f docker-compose.yaml up -d --remove-orphans
     docker-compose -f docker-compose.yaml ps
 }
@@ -31,19 +34,18 @@ install() {
 
 installBack() {
     echo 'Install Back'
-    docker-compose -f docker-compose.yaml run --rm -T --user=root --no-deps --entrypoint="/bin/bash -c"  php-fpm "chown 33:33 /var/www -R"
-    docker-compose -f docker-compose.yaml run -T --rm --user=www-data --no-deps --entrypoint="/bin/bash -c" php-fpm "composer install --prefer-dist --no-interaction --optimize-autoloader"
+    docker-compose -f docker-compose.yaml run -T --rm --user=$USER_ID --no-deps --entrypoint="/bin/bash -c" php-fpm "composer install --prefer-dist --no-interaction --optimize-autoloader"
 }
 
 installFront() {
     echo 'Install Front'
-    docker-compose -f docker-compose.yaml run --rm -T --user=root --no-deps --entrypoint="/bin/bash -c"  front "chown 33:33 /var/www -R"
-    docker-compose -f docker-compose.yaml run -T --rm --user=www-data --no-deps --entrypoint="/bin/bash -c" front "npm i"
+    docker-compose -f docker-compose.yaml run -T --rm --user=$USER_ID --no-deps --entrypoint="/bin/bash -c" front "npm i"
 }
 
+# Update Doctrine schema and load Doctrine fixtures
 populate() {
     echo 'Populate'
-    docker-compose -f docker-compose.yaml exec -T --user www-data php-fpm bash -c "bin/console do:sc:up -f &&
+    docker-compose -f docker-compose.yaml exec -T --user $USER_ID php-fpm bash -c "bin/console do:sc:up -f &&
                                                                                         bin/console do:fi:lo -n"
 }
 
@@ -58,11 +60,11 @@ down() {
 }
 
 buildFront() {
-    docker-compose -f docker-compose.yaml exec -T --user www-data front bash -c "npm run build"
+    docker-compose -f docker-compose.yaml exec -T --user $USER_ID front bash -c "npm run build"
 }
 
 watchFront() {
-    docker-compose -f docker-compose.yaml exec -T --user www-data front bash -c "npm run watch"
+    docker-compose -f docker-compose.yaml exec -T --user $USER_ID front bash -c "npm run watch"
 }
 
 # Usage info
@@ -132,6 +134,9 @@ case "$1" in
         ;;
  install)
         install
+        ;;
+ installFront)
+        installFront
         ;;
  installBack)
         installBack

@@ -1,0 +1,12 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\Tests\:
+        resource: '../features/bootstrap/*'
+
+    App\Tests\FeatureContext:
+        public: true
+        arguments:
+            - '@kernel'

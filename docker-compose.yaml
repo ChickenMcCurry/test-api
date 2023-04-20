@@ -9,7 +9,7 @@ services:
       - ${HTTP_NGINX_PORT}:8080
     volumes:
       - ./docker/nginx/host.conf:/etc/nginx/sites-enabled/default
-      - ./app/back:/var/www/test-api/:delegated
+      - ./app/back:/var/www/test-api/
     working_dir: /var/www/test-api/
     depends_on:
       - php-fpm
@@ -21,10 +21,12 @@ services:
     ports:
       - ${PHP_FPM_PORT}:9000
     volumes:
-      - ./app/back:/var/www/test-api/:delegated
+      - ./app/back:/var/www/test-api/
       - ./docker/php-fpm/fpm-pool.conf:/etc/php/7.1/fpm/pool.d/www.conf:ro
     working_dir: /var/www/test-api/
     entrypoint: /docker-entrypoint.sh
+    depends_on:
+      - postgre
 
   front:
     build: docker/front
